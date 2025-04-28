@@ -1,0 +1,105 @@
+---
+import PlusIcon from "./icons/plus.astro"
+
+---
+<div class="bg-gray-700 p-4 rounded-lg shadow-md">
+    <h1 class="text-2xl">Mis Tareas</h1>
+    <ul id="listaTareas" class="flex flex-col gap-1.5 pt-3.5"></ul>
+    <div class="flex justify-end items-center mt-4">
+        <button title="Agregar tarea" class="cursor-pointer ml-2 bg-blue-500 text-white p-2 rounded-full hover:bg-blue-700" id="modalBtn" type="button"><PlusIcon/></button>
+    </div>
+</div>
+
+<div class="fixed inset-0 bg-black/80 flex items-center justify-center z-50" id="modal" style="display: none;">
+    <div class="bg-white rounded-lg p-6 w-96 text-black z-51">
+        <h2 class="text-xl mb-4">Agregar Tarea</h2>
+        <input type="text" id="tareaTitle" class="border border-gray-300 p-2 w-full rounded" placeholder="Escribe tu tarea aquí..." />
+        <input type="date" id="tareaDate" class="border border-gray-300 p-2 w-full mt-4 rounded" placeholder="Fecha de vencimiento" />
+        <textarea class="border border-gray-300 p-2 w-full mt-4 rounded" id="tareaDesc" placeholder="Descripción de tu tarea"></textarea>
+        <div class="flex justify-end mt-4">
+            <button id="agregarBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">Guardar</button>
+            <button id="cancelarBtn" class="ml-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    const $ = e => document.querySelector(e)
+    const tareaInput = $("#tareaInput")
+    const agregarBtn = $("#agregarBtn")
+    const listaTareas = $("#listaTareas")
+    const modal = $("#modal")
+    const modalBtn = $("#modalBtn")
+
+    const tareas = JSON.parse(localStorage.getItem("tareas")) || []
+
+    modalBtn?.addEventListener("click", () => {
+        modal.style.display = "flex"
+    })
+
+    modal.addEventListener("click", (e) => {
+        if (e.target === modal) {
+            modal.style.display = "none"
+        }
+    })
+
+    $("#cancelarBtn").addEventListener("click", () => {
+        modal.style.display = "none"
+    })
+
+    function renderTareas() {
+        listaTareas.innerHTML = ""
+        tareas.forEach((tarea, index) => {
+            const li = document.createElement("li")
+            li.textContent = tarea
+            li.classList.add("bg-gray-800", "p-2", "rounded", "flex", "justify-between", "items-center")
+
+            const eliminarBtn = document.createElement("button")
+            eliminarBtn.innerHTML = `
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                    <path d="M3 3l18 18"></path>
+                    <path d="M4 7h3m4 0h9"></path><path d="M10 11l0 6"></path>
+                    <path d="M14 14l0 3"></path>
+                    <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l.077 -.923"></path>
+                    <path d="M18.384 14.373l.616 -7.373"></path>
+                    <path d="M9 5v-1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>
+                </svg>
+            `
+            eliminarBtn.classList.add("ml-2", "bg-red-500", "text-white", "px-2", "py-2", "rounded-full", "cursor-pointer", "hover:bg-red-700", "center")
+            eliminarBtn.setAttribute("title", "Eliminar tarea")
+            eliminarBtn.setAttribute("aria-label", "Eliminar tarea")
+            eliminarBtn.onclick = () => eliminarTarea(index)
+
+            li.appendChild(eliminarBtn)
+            listaTareas.appendChild(li)
+        })
+    }
+
+    agregarBtn.addEventListener("click", () => {
+        const tarea = tareaInput.value.trim()
+        if (tarea) {
+            tareas.push(tarea)
+            localStorage.setItem("tareas", JSON.stringify(tareas))
+            tareaInput.value = ""
+            renderTareas()
+        }
+    })
+
+    function eliminarTarea(index) {
+        tareas.splice(index, 1)
+        localStorage.setItem("tareas", JSON.stringify(tareas))
+        renderTareas()
+    }
+
+    renderTareas()
+</script>
