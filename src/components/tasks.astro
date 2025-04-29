@@ -25,13 +25,11 @@ import PlusIcon from "./icons/plus.astro"
 
 <script type="module">
     const $ = e => document.querySelector(e)
-    const tareaInput = $("#tareaInput")
+    const $$ = e => document.querySelectorAll(e)
     const agregarBtn = $("#agregarBtn")
     const listaTareas = $("#listaTareas")
     const modal = $("#modal")
     const modalBtn = $("#modalBtn")
-
-    const tareas = JSON.parse(localStorage.getItem("tareas")) || []
 
     modalBtn?.addEventListener("click", () => {
         modal.style.display = "flex"
@@ -39,19 +37,30 @@ import PlusIcon from "./icons/plus.astro"
 
     modal.addEventListener("click", (e) => {
         if (e.target === modal) {
+            $("#tareaTitle").value = ""
+            $("#tareaDate").value = ""
+            $("#tareaDesc").value = ""
             modal.style.display = "none"
         }
     })
 
     $("#cancelarBtn").addEventListener("click", () => {
+        $("#tareaTitle").value = ""
+        $("#tareaDate").value = ""
+        $("#tareaDesc").value = ""
         modal.style.display = "none"
     })
 
     function renderTareas() {
+        const tareas = JSON.parse(localStorage.getItem("tareas")) || []
         listaTareas.innerHTML = ""
         tareas.forEach((tarea, index) => {
+            const openTareaBtn = document.createElement('button')
+            openTareaBtn.classList.add("w-full", "text-start", "cursor-pointer")
+            openTareaBtn.textContent = tarea.title
+            openTareaBtn.onclick = () => renderTarea(index)
+            openTareaBtn.setAttribute("title", "Click para abrir la tarea")
             const li = document.createElement("li")
-            li.textContent = tarea
             li.classList.add("bg-gray-800", "p-2", "rounded", "flex", "justify-between", "items-center")
 
             const eliminarBtn = document.createElement("button")
@@ -80,25 +89,50 @@ import PlusIcon from "./icons/plus.astro"
             eliminarBtn.setAttribute("aria-label", "Eliminar tarea")
             eliminarBtn.onclick = () => eliminarTarea(index)
 
+            li.appendChild(openTareaBtn)
             li.appendChild(eliminarBtn)
             listaTareas.appendChild(li)
         })
     }
 
     agregarBtn.addEventListener("click", () => {
-        const tarea = tareaInput.value.trim()
+        const title = $("#tareaTitle")
+        const date = $("#tareaDate")
+        const desc = $("#tareaDesc")
+
+        const tarea = {
+            title: title.value,
+            date: date.value,
+            description: desc.value
+        }
+
         if (tarea) {
-            tareas.push(tarea)
-            localStorage.setItem("tareas", JSON.stringify(tareas))
-            tareaInput.value = ""
+            const tareasGuardadas = JSON.parse(localStorage.getItem('tareas')) || []
+            tareasGuardadas.push(tarea)
+            localStorage.setItem('tareas', JSON.stringify(tareasGuardadas))
+            title.value = ""
+            date.value = ""
+            desc.value = ""
+            modal.style.display = "none"
             renderTareas()
         }
     })
 
     function eliminarTarea(index) {
+        const tareas = JSON.parse(localStorage.getItem("tareas")) || []
+
         tareas.splice(index, 1)
         localStorage.setItem("tareas", JSON.stringify(tareas))
         renderTareas()
+    }
+
+    function renderTarea(id) {
+        const tareas = JSON.parse(localStorage.getItem("tareas")) || []
+        const tarea = tareas[id]
+        $("#tareaTitle").value = tarea.title
+        $("#tareaDate").value = tarea.date
+        $("#tareaDesc").value = tarea.description
+        modal.style.display = "flex"
     }
 
     renderTareas()
